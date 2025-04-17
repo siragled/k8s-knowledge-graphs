@@ -36,15 +36,23 @@ def setup_github_client():
         logging.error(f"Failed to authenticate or get user info: {e}")
         raise
 
+def sanitize_filename_part(part):
+    """Removes or replaces characters invalid for filenames."""
+    part = part.replace("/", "_").replace("\\", "_")
+    part = re.sub(r'[<>:"|?*\s]+', '_', part)
+    part = part.strip('_.')
+    return part
+
+
 def save_file(content_file, output_base_dir):
     repo_full_name = content_file.repository.full_name
     file_path_in_repo = Path(content_file.path)
     original_filename = file_path_in_repo.name
 
 
-    repo_dir_name = repo_full_name
+    repo_dir_name = sanitize_filename_part(repo_full_name) 
     local_dir = output_base_dir / repo_dir_name / file_path_in_repo.parent
-    local_path = local_dir / original_filename 
+    local_path = local_dir / original_filename
     local_dir.mkdir(parents=True, exist_ok=True)
     logging.debug(f"Saving to: {local_path}")
 
